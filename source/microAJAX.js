@@ -52,10 +52,22 @@ var GlobalObject = (function(){
         // -- INTERFACE
         // --
 
+        // -- getOptions
+        //      url: remote url expecting an http.get
+        //      [data]: data that will be seralized to a query string 
+        //              and added to the url.
+        //      [timeout]: an integer, representing the timeout value
+        //                 in milliseconds.
         this.get = function (getOptions) {
             return getInternal(getOptions);
         }
 
+        // -- postOptions
+        //      url: remote url expecting an http.post
+        //      [data]: data that will be seralized an added to the 
+        //              http body.
+        //      [timeout]: an integer, representing the timeout value
+        //                 in milliseconds.
         this.post = function (postOptions) {
             return postInternal(postOptions);
         }
