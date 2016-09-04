@@ -1,12 +1,12 @@
 var GlobalObject = (function(){
     try { return window; }
     catch (e) { return exports; }
-});
+})();
 
 (function(_micro){
 
-    this.History = new function() {
-        _popStateCallbacks = [];
+    _micro.History = new function() {
+        var _popStateCallbacks = [];
 
         if(GlobalObject.onpopstate
         && typeof GlobalObject.onpopstate == "function")
@@ -15,20 +15,20 @@ var GlobalObject = (function(){
         GlobalObject.onpopstate = _popstateHandler; 
 
         this.push = function (state, url){            
-            GlobalObject.History.pushState(
+            GlobalObject.history.pushState(
                 state, 
                 null, 
                 url || ""
             );
         }
 
-        this.onpopstate = function(callback){
+        this.onPopState = function(callback){
             _popStateCallbacks.push(callback);
         }
 
-        function _popstateHander(event){
+        function _popstateHandler(event){
             _popStateCallbacks.forEach(function(callback){
-                callback(event.stateData);
+                callback(event.state);
             });
         }
 

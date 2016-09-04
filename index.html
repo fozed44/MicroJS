@@ -8,6 +8,26 @@
        <script src="/source/microHistory.js"    type="text/javascript"></script>
    </head>
    <body>
-       <h1>Hello dude</h1>
+       <div>
+            <label>Random number: </label>
+            <label id="random"></label>
+        </div>
+        <div>
+            <input id="btnGenNum" value="Generate New" type=button />
+            <input id="btnPush" value="push" type=button />
+       </div>
+       <script>
+           window.onload = function(){
+               document.querySelector("#btnGenNum").addEventListener('click', function(){
+                   document.querySelector('#random').innerHTML = Math.random();
+               });
+               document.querySelector("#btnPush").addEventListener('click', function(){
+                   micro.History.push(document.querySelector('#random').innerHTML);
+               });
+               micro.History.onPopState(function(stateObject){
+                   document.querySelector('#random').innerHTML = stateObject;
+               });
+           }
+       </script>
    </body> 
 </html>
