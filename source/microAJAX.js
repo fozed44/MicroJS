@@ -10,10 +10,10 @@ var GlobalObject = (function(){
 
         xhttp = http;
 
-        _successHandler   = function () {}
-        _errorHandler     = function () {}
-        _completedHandler = function () {}
-        _timeoutHandler   = function () {}
+        _successHandler   = function () {};
+        _errorHandler     = function () {};
+        _completedHandler = function () {};
+        _timeoutHandler   = function () {};
 
         this.success = function (handler) {
             _successHandler = handler;
@@ -30,7 +30,7 @@ var GlobalObject = (function(){
         this.timeout = function (handler) {
             _timeoutHandler = handler;
             return this;
-        }
+        };
 
         xhttp.onreadystatechange = function () {
             if (this.readyState !== 4) return;
@@ -38,12 +38,12 @@ var GlobalObject = (function(){
             if (xhttp.status == 200) _successHandler(xhttp.responseText);
             else _errorHandler(xhttp.status, xhttp.statusTest);
             _completedHandler(xhttp.status, xhttp.statusText)
-        }
+        };
 
         xhttp.ontimeout = function () {
             _timeoutHandler();
-        }
-    }
+        };
+    };
 
     _micro.AJAX = new function () {
 
@@ -60,7 +60,7 @@ var GlobalObject = (function(){
         //                 in milliseconds.
         this.get = function (getOptions) {
             return getInternal(getOptions);
-        }
+        };
 
         // -- postOptions
         //      url: remote url expecting an http.post
@@ -70,7 +70,7 @@ var GlobalObject = (function(){
         //                 in milliseconds.
         this.post = function (postOptions) {
             return postInternal(postOptions);
-        }
+        };
 
         // --
         // -- END INTERFACE
@@ -82,7 +82,7 @@ var GlobalObject = (function(){
                 try { return new ActiveXObject("Microsoft.XMLHTTP"); }
                 catch (e) { return new ActiveXObject("Msxml2.XMLHTTP"); }
             }
-        }
+        };
 
         function getInternal(getOptions) {
             http = CreateHttpObject();
@@ -97,7 +97,7 @@ var GlobalObject = (function(){
             http.timeout = getTimeoutOptionsProperty(getOptions);
             http.send();
             return new AJAXResult(http);
-        }
+        };
 
         function postInternal(postOptions) {
             http = CreateHttpObject();
@@ -110,24 +110,24 @@ var GlobalObject = (function(){
             http.SetRequestHeader("X-requested-With:", "XMLHttpRequest");
             http.send(parseDataProperty(postOptions));
             return new AJAXResult(http);
-        }
+        };
 
         function getUrlOptionsProperty(options) {
             if (!options.url || typeof (options.url) != "string")
                 throw "AJAX: Invalid options. url property is missing or invalid.";
             return options.url;
-        }
+        };
 
         function getTimeoutOptionsProperty(options) {
             if (options.timout != undefined && typeof (options.timeout) != "number")
                 throw "microAJAX: Invalid options. timeout property is not a number.";
             return options.timeout;
-        }
+        };
 
         function addDataToUrl(url, getOptions) {
             var parsedData = parseDataProperty(getOptions);
             return url + (parsedData.length ? ("?" + parsedData) : "");
-        }
+        };
 
         function countObjectProperties(object) {
             if (Object.Keys) return Object.Keys(object).length;
@@ -136,7 +136,7 @@ var GlobalObject = (function(){
             for (var property in object)
                 if (object.hasOwnProperty(property)) propertyCount++;
             return propertyCount;
-        }
+        };
 
         function parseDataProperty(options) {
             if (!options.data || countObjectProperties(options.data) == 0) return "";
@@ -146,7 +146,7 @@ var GlobalObject = (function(){
                 if (Object.hasOwnProperty(property))
                     parsed += property + "=" + object[property] + "&";
             return parsed.length ? parsed.slice(0, -1) : "";
-        }
+        };
     }
 
 })(GlobalObject.micro = (GlobalObject.micro || {}));

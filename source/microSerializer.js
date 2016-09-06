@@ -17,7 +17,7 @@ var GlobalObject = (function(){
             return result
                    ? '?' + result.slice(0, result.length - 1)
                    : "";
-        }
+        };
 
         //--
         //-- Interface
@@ -30,7 +30,7 @@ var GlobalObject = (function(){
                 if (object.hasOwnProperty(property))
                     result += serializeElement(parentName+property, object[property]);
             return result;
-        }
+        };
 
         function serializeElement(elementName, element) {
             if (typeof (element) == "function")
@@ -43,7 +43,7 @@ var GlobalObject = (function(){
                 return serializeObject(element, elementName);
 
             return elementName + '=' + element + '&';
-        }
+        };
 
         function serializeArray(propertyName, array) {
             var result = "";
@@ -51,7 +51,7 @@ var GlobalObject = (function(){
                 result += serializeElement(propertyName, item)
             });
             return result;
-        }
-    }   
+        };
+    };
 
 })(GlobalObject.micro = (GlobalObject.micro || {}));
