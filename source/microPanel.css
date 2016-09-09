@@ -1,0 +1,30 @@
+.micro-panel-container {
+    position: relative;
+}
+
+.micro-panel-panel {
+    background: #151511;
+    min-height:    30px;
+    min-width:     100px;
+    position:     absolute;
+    bottom:       20px;
+    border-radius: 5px;
+    padding-top:3px;
+    padding-bottom:3px;
+}
+
+.micro-panel-heading {
+    background: #000000;
+    color: deeppink;
+    width:100%;
+    text-align:center;
+    border-bottom: 1px solid green;
+}
+
+.micro-panel-data-item {
+    color: deepskyblue;
+    text-align:left;
+    margin-top:3px;
+    padding-right: 15px;
+    padding-left: 15px;
+}

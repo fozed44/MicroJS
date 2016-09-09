@@ -41,9 +41,5 @@ GlobalObject.micro.Event.register('onLoadComplete');
 GlobalObject.micro.Event.addHandler(GlobalObject, 'load', function(){
     setTimeout(function(self){
         GlobalObject.micro.Event.fire('onLoadComplete');
-    },1000);
+    },1);
 });
-
-// micro.Event.addHandler(GlobalObject, 'load', function(){
-//     setTimeout(micro.Event.onloadComplete,1000)
-// });

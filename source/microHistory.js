@@ -40,7 +40,5 @@ var GlobalObject = (function(){
                     _popstateHandler({state: history.state});
             });
         })();
-
     };
-
 })(GlobalObject.micro = (GlobalObject.micro || {}));
