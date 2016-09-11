@@ -80,7 +80,7 @@ var GlobalObject = (function(){
     */
     _micro.Panel = new function Panel() {
 
-        var _serverResult = [];
+        var _serverResult = null;
 
         /*
             Creates a configuration object, the properties of which is are follows:
@@ -108,6 +108,12 @@ var GlobalObject = (function(){
                 remoteDataKey:    mElement.data('remote-key'),
                 verticalOffset:   mElement.data('vertical-offset'),
                 horizontalOffset: mElement.data('horizontal-offset'),
+                heading:          remoteAddress
+                                        ? getRemoteHeading(element, remoteDataKey)
+                                        : mElement.data('heading'),
+                items:            remoteAddress
+                                        ? getRemoteItems(element, remoteDataKey)
+                                        : getLocalItems(mElement.data('items'))
             };
         }
 
