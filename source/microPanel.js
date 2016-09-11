@@ -35,9 +35,52 @@ var GlobalObject = (function(){
 
             Using remote data.
 
-                The panel can get its data from a remote JSON enpoint
+                data-remote-address:
+                    The server address that can respond with data that can be used to populate the panel.
+                data-remote-key:
+                    A string that the server can use to determine exactly what data should be returned for a particular
+                    panel.
+
+                Panels can get their data from a remote endpoint. In order for a panel to retrieve its data from the server,
+                it must have an address defined via the data-remote-address attribute, and it also must have a key defined
+                by the data-remote-key. The key is a string the the server can use to determine exactly what data to return
+                for a particular panel.
+
+            Serving data to the panel.
+
+                The Pane class does not send a single request for each panel on the page, instead the panel class sends
+                only one request containing an array whose length equals the number of panels on the page that are configured
+                to populate their data from the server. To clarify, the server will recieve an array containing all of the
+                panel keys.
+
+                To populate the panels, the server should return an array of objects contianing the panel data. The format
+                of the data returned by the server is as follows:
+                [
+                    { 
+                        key:     panelKey
+                        heading: panelHeading,
+                        items:
+                            [
+                                { key: itemKey, value: itemValue },
+                                { key: itemKey, value: itemValue },
+                                { key: itemKey, value: itemValue }
+                            ]
+                    },
+                    { 
+                        key:     panelKey
+                        heading: panelHeading,
+                        items:
+                            [
+                                { key: itemKey, value: itemValue },
+                                { key: itemKey, value: itemValue },
+                                { key: itemKey, value: itemValue }
+                            ]
+                    }
+                ]
     */
-    _micro.Panel = new function() {
+    _micro.Panel = new function Panel() {
+
+        var _serverResult = [];
 
         /*
             Creates a configuration object, the properties of which is are follows:
@@ -61,7 +104,10 @@ var GlobalObject = (function(){
         function createConfigObject(element){
             var mElement = m(element);            
             return {
-                remoteAddress: mElement.data('remote-address'),
+                remoteAddress:    mElement.data('remote-address'),
+                remoteDataKey:    mElement.data('remote-key'),
+                verticalOffset:   mElement.data('vertical-offset'),
+                horizontalOffset: mElement.data('horizontal-offset'),
             };
         }
 
