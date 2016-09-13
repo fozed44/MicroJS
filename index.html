@@ -37,9 +37,18 @@
        <div>
            dummy text
        </div>
-       <div class="micro-panel" data-heading="Test Heading">
-           Hover Me!
-        </div>
+       <div class="micro-panel" data-heading="Test Heading" data-items="item1|value1|item2|value2|item3|very long value3">
+           Local Panel 1
+       </div>
+       <div class="micro-panel" data-heading="local panel" data-items="local panel|local panel value">
+           Local Panel 2
+       </div>
+       <div class="micro-panel" data-remote-address="/paneltest" data-remote-key="panel1" data-test="blah">
+            Remote Panel 1
+       </div>
+       <div class="micro-panel" data-remote-address="/paneltest" data-remote-key="panel2">
+            Remote Panel 2
+       </div>
         <div>extended text</div>
        <script>
            window.onload = function(){

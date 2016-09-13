@@ -10,10 +10,25 @@ http.createServer(function(req,res){
         case '/paneltest':
             res.writeHead(200, {"Content-Type": "application/json"});
             var json = JSON.stringify([
-                { name: "Heading A", value: "Value A" },
-                { name: "Heading B", value: "Long Value" },
-                { name: "Heading C", value: "Much Longer Value" },
-                { name: "Heading D", value: "Value D" }
+                { 
+                    key: panel1, 
+                    heading: "panel one heading", 
+                    items: [
+                        { key: "panel1 itemA", value: "Panel1 Value A" },
+                        { key: "panel1 itemB", value: "panel1 value B" }
+                    ]
+                },
+                {
+                    key: panel2,
+                    heading: "panel two heading",
+                    items:
+                    [
+                        { key: "panel2 item A", value: "panel2 value A" },
+                        { key: "panel2 item B", value: "panel2 value B" },
+                        { key: "panel2 item C", value: "panel2 value C" },
+                        { key: "panel2 item D", value: "panel2 value D" }
+                    ]
+                }
             ]);
             res.end(json);
             break;

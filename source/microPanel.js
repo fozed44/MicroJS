@@ -25,7 +25,7 @@ var GlobalObject = (function(){
                 data-items:
                     The items to be displayed below the heading. Each item has two parts, a key and a name. When configured
                     from within the element via html attributes the key and name are not labeled. Instead, the items are
-                    configured via a comma seperated list - key1,name1,key2,name2,key3,name3 etc.
+                    configured via a pipe seperated list - key1|value1|key2|value2|key3|value3 etc.
                 vertical-offset:
                     An integer, whose units are pixels, specifying the virtical displacement of the panel from its normal
                     position.
@@ -55,6 +55,7 @@ var GlobalObject = (function(){
 
                 To populate the panels, the server should return an array of objects contianing the panel data. The format
                 of the data returned by the server is as follows:
+                
                 [
                     { 
                         key:     panelKey
@@ -80,17 +81,88 @@ var GlobalObject = (function(){
     */
     _micro.Panel = new function Panel() {
 
-        var _serverResult = null;
+        var _serverResults = null;
+
+        var serverConfig = {
+            remoteAddress: "",
+            remoteKeys: []
+        };
+
+        function throwGenericError(){
+            throw 'microPanel: unknown error!';
+        }
+
+        /*
+            Verify that the data returned from the server conforms to the daya layout that is described
+            in the comments at the beginning of this file.
+        */
+        function verifyServerData(serverData){
+            if(!Array.isArray(serverData)){
+                console.log('server result is not an array');
+                throwGenericError();
+            }
+            for(var panel in serverData){
+                var invalid = false;
+                if(!panel.hasOwnProperty('key')){
+                    console.log('an object returned from the server is missing a "key" property.');
+                    invalid = true;
+                }
+                if(!panel.hasOwnProperty('heading')) {
+                    console.log('An object returned from the server is missing a "heading" property.');
+                    invalid = true;
+                }
+                if(!panel.hasOwnProperty('items')) {
+                    console.log('An object returned from the server is missing an "items" property.');
+                    invalid = true;
+                }
+                if(!Array.isArray(panel.items)) {
+                    console.log('An object returned from the server has an "items" property that is not an array.');
+                    invalid = false;
+                }
+                for(var item in panel.items){
+                    if(item.hasOwnProperty('key')){
+                        console.log('An object returned from the server has is missing an "items.key" property.');
+                        invalid = true;
+                    }
+                    if(item.hasOwnProperty('value')){
+                        console.log('An object returned from the server is missing an "items.value" property.')
+                        invalid = true;
+                    }
+                }
+            }
+            if(invalid)
+                throwGenericError();
+
+        }
+
+        /*
+            Load data from the server.
+        */
+        function queryServer(rempteAddress, keyList){
+            _micro.AJAX.get({
+                url: remoteAddress,
+                data: keyList
+            }).success(function(data){
+                verifyServerData(data);
+                _serverResults = data;
+                panelizeRemoteElements();
+            }).error(function(errorMessage){
+                console.Log('Error loading panel data from server' + errorMessage);
+            });
+        }
+
+        /*
+            Return true if the element requires a server load.
+        */
+        function requiresServerLoad(element){
+            if(m(element).data('remoteAddress'))
+                return true;
+            return false;
+        }
 
         /*
             Creates a configuration object, the properties of which is are follows:
 
-            remoteAddress: (data-remote-address)
-                Server path to an endpoint that the panel can use to populate its data.
-            remoteDataKey: (data-remote-key)
-                A string that is sent to the server via a ?key= query string entry that
-                the server should use to determine the correct data to return for this
-                particular panel.
             heading: (data-heading)
                 Panel heading.
             items: (data-items)
@@ -101,20 +173,86 @@ var GlobalObject = (function(){
                 Allows a panel to be rendered to the right or left of its normal posiition.
 
         */
-        function createConfigObject(element){
+        function getLocalElementConfig(element){
             var mElement = m(element);            
             return {
-                remoteAddress:    mElement.data('remote-address'),
-                remoteDataKey:    mElement.data('remote-key'),
                 verticalOffset:   mElement.data('vertical-offset'),
                 horizontalOffset: mElement.data('horizontal-offset'),
-                heading:          remoteAddress
-                                        ? getRemoteHeading(element, remoteDataKey)
-                                        : mElement.data('heading'),
-                items:            remoteAddress
-                                        ? getRemoteItems(element, remoteDataKey)
-                                        : getLocalItems(mElement.data('items'))
+                heading:          mElement.data('heading'),
+                items:            parseLocalItems(mElement.data('items'))
             };
+        }
+
+        function getRemoteElementConfig(element){
+            var mElement = m(element);
+            var remoteKey = melement.data('remoteKey');
+            var serverResult = getServerResult(remoteKey);
+            return {
+                verticalOffset: mElement.data('vertical-offset'),
+                horizontalOffset: mElement.data('horizontal-offset'),
+                heading: serverResult['heading'],
+                items:   serverResult['items']
+            }
+        }
+
+        function getServerResult(remoteKey){
+            _serverResults.forEach(function(serverResult){
+                if(serverResult.key == remoteKey)
+                    return serverResult;
+            })
+            console.log("microPanel: remoteKey '" + remoteKey + "' was not found in server results.");
+            throwGenericError();
+        }
+
+        /*
+            Parse the item list. The item list is a pipe delemited list of key value pairs.
+        */
+        function parseLocalItems(itemData){
+            var items = itemData.split('|');
+            if(!items.length)
+                return [];
+            if(items.length & 1){
+                console.log('microPanel: Panel with invalid item data.');
+                throwGenericError();
+            }
+            var result = [];
+            for(var x = 0; x < items.length; x += 2){
+                result.push({
+                    key: items[x],
+                    value: items[x+1]
+                });
+            }
+            return result;
+        }
+
+        /*
+            Return the remote address used by the inpute element. This function will throw an exception if that is
+            the case. However, this does not mean that either all panels must get their data from the server
+            or all panels must get their data locally.
+        */
+        function readRemoteAddress(element){
+            var remoteAddress = m(this).data('remoteAddress');
+            if(serverConfig.remoteAddress
+            && serverConfig.remoteAddress == remoteAddress)
+                throw 'microPanel: Multipe server addresses are not suppored.'
+            serverConfig.remoteAddress = remoteAddress;
+        }
+
+        /*
+            Reads the remote key from the element and adds it to serverConfig.remoteKeys.
+        */
+        function readRemoteKey(element){
+            serverConfig.remoteKeys.push(
+                m(element).data('remoteKey')
+            );
+        }
+
+        /*
+            read the remote address and remote key from the element.
+        */
+        function readServerInfo(element){
+            readRemoteAddress(element);
+            readRemoteKey(element);
         }
 
         function createPanelContainer() {
@@ -129,8 +267,8 @@ var GlobalObject = (function(){
             return panel;
         }
 
-        function createHeader(element){
-            var headerText = m(element).data('heading');
+        function createHeader(element, config){
+            var headerText = config.heading;
             var headerDiv = document.createElement('div');
             var header = document.createTextNode(headerText);
             headerDiv.className = 'micro-panel-heading';
@@ -145,21 +283,23 @@ var GlobalObject = (function(){
             return containerDiv;
         }
 
-        function assemble(element){
+        function appendDataItems(panel, config){
+            config.items.forEach(function(item){
+                panel.appendChild(createDataItem(item.key + ' ' + item.value));
+            });
+        }
+
+        function assemblePanel(element, config){
             var container = createPanelContainer();
             var panel = createPanel();
-            var header = createHeader(element);
+            var header = createHeader(element, config);
             container.appendChild(panel);
             panel.appendChild(header);
-            panel.appendChild(createDataItem("test:  Item 1"));
-            panel.appendChild(createDataItem('test:  Long Long Long Item'));
-            panel.appendChild(createDataItem('test:  Item 2'));
+            appendDataItems(panel, config);
             return container;
         }
 
-        function panelizeElement(element){
-            var panel = assemble(element);
-            element.appendChild(panel);
+        function addMouseHandlers(element, panel){
             _micro.Event.addHandler(element, 'mouseover', function(){
                 element.appendChild(panel);
             });
@@ -168,10 +308,41 @@ var GlobalObject = (function(){
             });
         }
 
-        function panelizeAllElements(){
+        function panelizeLocalElement(element){
+            var localElementConfig = getLocalElementConfig(element);
+            var panel = assemblePanel(element, localElementConfig);
+            addMouseHandlers(element,panel);
+        }
+
+        function panelizeRemoteElement(element){
+            var remoteElementConfig = getRemoteElementConfig(element);
+            var panel = assemblePanel(element, remoteElementConfig);
+            addMouseHandlers(element, panel);
+        }
+
+        function panelizeRemoteElements(){
             m('.micro-panel').each(function(){
-                panelizeElement(this);
+                if(!requiresServerLoad(this))
+                    return;
+                panelizeRemoteElement(this);
             });
+        }
+
+        function panelizeAllElements(){
+            var serverLoadRequired = {
+                value: false
+            };
+            m('.micro-panel').each(function(serverLoadRequired){
+                var thisElementRequiresServerLoad = requiresServerLoad(this);
+                if(thisElementRequiresServerLoad){
+                    serverLoadRequired.value = thisElementRequiresServerLoad;
+                    readServerInfo(this);
+                } else {
+                    panelizeLocalElement(this);
+                }
+            });
+            if(serverLoadRequired.value)
+                queryServer();
         }
 
         (function(){
