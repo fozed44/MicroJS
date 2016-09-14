@@ -83,7 +83,7 @@ var GlobalObject = (function(){
 
         var _serverResults = null;
 
-        var serverConfig = {
+        var _serverConfig = {
             remoteAddress: "",
             remoteKeys: []
         };
@@ -101,8 +101,8 @@ var GlobalObject = (function(){
                 console.log('server result is not an array');
                 throwGenericError();
             }
-            for(var panel in serverData){
-                var invalid = false;
+            var invalid = false;
+            serverData.forEach(function(panel){
                 if(!panel.hasOwnProperty('key')){
                     console.log('an object returned from the server is missing a "key" property.');
                     invalid = true;
@@ -129,7 +129,7 @@ var GlobalObject = (function(){
                         invalid = true;
                     }
                 }
-            }
+            });
             if(invalid)
                 throwGenericError();
 
@@ -138,16 +138,17 @@ var GlobalObject = (function(){
         /*
             Load data from the server.
         */
-        function queryServer(rempteAddress, keyList){
+        function queryServer(){
             _micro.AJAX.get({
-                url: remoteAddress,
-                data: keyList
+                url:  _serverConfig.remoteAddress,
+                data: _serverConfig.remoteKeys
             }).success(function(data){
-                verifyServerData(data);
-                _serverResults = data;
+                var parsedServerData = JSON.parse(data);
+                verifyServerData(parsedServerData);
+                _serverResults = parsedServerData;
                 panelizeRemoteElements();
             }).error(function(errorMessage){
-                console.Log('Error loading panel data from server' + errorMessage);
+                console.log('Error loading panel data from server' + errorMessage);
             });
         }
 
@@ -185,7 +186,7 @@ var GlobalObject = (function(){
 
         function getRemoteElementConfig(element){
             var mElement = m(element);
-            var remoteKey = melement.data('remoteKey');
+            var remoteKey = mElement.data('remoteKey');
             var serverResult = getServerResult(remoteKey);
             return {
                 verticalOffset: mElement.data('vertical-offset'),
@@ -196,10 +197,10 @@ var GlobalObject = (function(){
         }
 
         function getServerResult(remoteKey){
-            _serverResults.forEach(function(serverResult){
-                if(serverResult.key == remoteKey)
-                    return serverResult;
-            })
+            for(var x = 0; x < _serverResults.length; ++x){
+                if(_serverResults[x].key == remoteKey)
+                    return _serverResults[x];
+            }
             console.log("microPanel: remoteKey '" + remoteKey + "' was not found in server results.");
             throwGenericError();
         }
@@ -231,18 +232,18 @@ var GlobalObject = (function(){
             or all panels must get their data locally.
         */
         function readRemoteAddress(element){
-            var remoteAddress = m(this).data('remoteAddress');
-            if(serverConfig.remoteAddress
-            && serverConfig.remoteAddress == remoteAddress)
+            var remoteAddress = m(element).data('remoteAddress');
+            if(_serverConfig.remoteAddress
+            && _serverConfig.remoteAddress != remoteAddress)
                 throw 'microPanel: Multipe server addresses are not suppored.'
-            serverConfig.remoteAddress = remoteAddress;
+            _serverConfig.remoteAddress = remoteAddress;
         }
 
         /*
-            Reads the remote key from the element and adds it to serverConfig.remoteKeys.
+            Reads the remote key from the element and adds it to _serverConfig.remoteKeys.
         */
         function readRemoteKey(element){
-            serverConfig.remoteKeys.push(
+            _serverConfig.remoteKeys.push(
                 m(element).data('remoteKey')
             );
         }
@@ -340,7 +341,7 @@ var GlobalObject = (function(){
                 } else {
                     panelizeLocalElement(this);
                 }
-            });
+            },serverLoadRequired);
             if(serverLoadRequired.value)
                 queryServer();
         }

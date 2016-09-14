@@ -11,7 +11,7 @@ http.createServer(function(req,res){
             res.writeHead(200, {"Content-Type": "application/json"});
             var json = JSON.stringify([
                 { 
-                    key: panel1, 
+                    key: "panel1", 
                     heading: "panel one heading", 
                     items: [
                         { key: "panel1 itemA", value: "Panel1 Value A" },
@@ -19,7 +19,7 @@ http.createServer(function(req,res){
                     ]
                 },
                 {
-                    key: panel2,
+                    key: "panel2",
                     heading: "panel two heading",
                     items:
                     [

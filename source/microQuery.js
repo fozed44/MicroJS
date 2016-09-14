@@ -8,9 +8,9 @@ var GlobalObject = (function(){
 (function(_micro){
     
     function queryObjects(_nodes){       
-        this.each = function(func){
+        this.each = function each(func){
             for(var x = 0; x < _nodes.length; ++x)
-                func.call(_nodes[x], func.arguments);
+                func.apply(_nodes[x], Array.prototype.slice.call(arguments,1));
         }
         this.data = function(dataAttrName){
             return queryObject.data.call(_nodes[0]); 
