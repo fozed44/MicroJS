@@ -177,8 +177,8 @@ var GlobalObject = (function(){
         function getLocalElementConfig(element){
             var mElement = m(element);            
             return {
-                verticalOffset:   mElement.data('vertical-offset'),
-                horizontalOffset: mElement.data('horizontal-offset'),
+                verticalOffset:   mElement.data('verticalOffset'),
+                horizontalOffset: mElement.data('horizontalOffset'),
                 heading:          mElement.data('heading'),
                 items:            parseLocalItems(mElement.data('items'))
             };
@@ -189,13 +189,20 @@ var GlobalObject = (function(){
             var remoteKey = mElement.data('remoteKey');
             var serverResult = getServerResult(remoteKey);
             return {
-                verticalOffset: mElement.data('vertical-offset'),
-                horizontalOffset: mElement.data('horizontal-offset'),
+                verticalOffset: mElement.data('verticalOffset'),
+                horizontalOffset: mElement.data('horizontalOffset'),
                 heading: serverResult['heading'],
                 items:   serverResult['items']
             }
         }
 
+        /*
+            Return the element of Array _serverResults whose key property equals the input string 'remoteKey'.
+            If an element with a key value of 'remoteKey' does not exist in the _serverResults array, an
+            exception is thrown. 'remoteKey' should always be the value of a data-remote-key attribute found
+            in one of the elements in the page. If an element has a data-remote-key attribute equal to
+            'remoteKey', then the data returned from the server should always contain an entry for that key.
+        */
         function getServerResult(remoteKey){
             for(var x = 0; x < _serverResults.length; ++x){
                 if(_serverResults[x].key == remoteKey)
@@ -262,9 +269,11 @@ var GlobalObject = (function(){
             return panelContainer;
         } 
 
-        function createPanel(){            
+        function createPanel(config){            
             var panel = document.createElement('div');
             panel.className = 'micro-panel-panel';
+            panel.style.bottom = config.verticalOffset   || panel.style.bottom;
+            panel.style.left   = config.horizontalOffset || panel.style.left;
             return panel;
         }
 
@@ -292,7 +301,7 @@ var GlobalObject = (function(){
 
         function assemblePanel(element, config){
             var container = createPanelContainer();
-            var panel = createPanel();
+            var panel = createPanel(config);
             var header = createHeader(element, config);
             container.appendChild(panel);
             panel.appendChild(header);
