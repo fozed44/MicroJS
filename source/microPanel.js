@@ -88,6 +88,26 @@ var GlobalObject = (function(){
             remoteKeys: []
         };
 
+        function opacityAnimator(animatedElement, animationTime){
+
+            var _maxOpacity = animatedElement.style.opacity,
+                _steps = Math.floor(animationTime / 30),
+                _steps = _steps > 0
+                       ? _steps
+                       : 1,
+                _step = _maxOpacity / _steps,
+                _animatedElement = animatedElement,
+                _intervalID;                    
+
+            this.start = function(){
+                _intervalID = setInterval(function(self){
+                    self._animatedElement.style.opacity += _step;
+                    if(self._animatedElement.style.opacity >= _maxOpacity)
+                        clearInterval(self._intervalID);
+                },30,this)
+            }
+        };
+
         function throwGenericError(){
             throw 'microPanel: unknown error!';
         }
@@ -162,38 +182,92 @@ var GlobalObject = (function(){
         }
 
         /*
-            Creates a configuration object, the properties of which is are follows:
+            Creates the base configuration object. The properties added to the config object by getCommonConfig
+            are properties that are common to both locally loaded panels and panels that get their heading and
+            data items from the server.
 
-            heading: (data-heading)
-                Panel heading.
-            items: (data-items)
-                Items displayed  below the heading
-            verticalOffset: (data-vertical-offset)
-                Allows a panel to be rendered above or below its normal position.
-            horizontalOffset: (data-horizontal-offset)
-                Allows a panel to be rendered to the right or left of its normal posiition.
+            Notice that the input object is an mObject.
+            
+            These common config properties include:
 
+            verticalOffset:   (data-vertical-offset)
+                Allows a panel to be rendered above or below its normal position. The value that appears
+                in the attribute is in pixels.
+                Default: 0px
+            horizontalOffset: (data-vertical-offset)
+                Allows a panel to be rendered to the right or left of its normal position. The value that
+                appears in the attribute is in pixels.
+                Default: 0px
+            opacity:          (data-opacity)
+                A value between 0.0 and 1.0 representing the opacity of the panel. 
+                Default: 1.0
+            slide:            (data-slide-time)
+                A value in milliseconds. The time it should take for the panel to slide into view.
+                Default: 0.0
+            slideDirection:   (data-slide-direction)
+                The direction from which the panel should slide into view. Supported values are 'bottom' and
+                'left'
+                Default: 'left'
+            fadeIn:           (data-fade-in)
+                The time in milliseconds that the panel should take to fade into view.
+                Default: 0
+            fadeOut:          (data-fade-out)
+                The time in milliseconds that the panel should take to fade out of view.
+                Default: 0
         */
-        function getLocalElementConfig(element){
-            var mElement = m(element);            
+        function getCommonConfig(mElement){
             return {
                 verticalOffset:   mElement.data('verticalOffset'),
                 horizontalOffset: mElement.data('horizontalOffset'),
-                heading:          mElement.data('heading'),
-                items:            parseLocalItems(mElement.data('items'))
-            };
+                opacity:          mElement.data('opacity') || 1.0,
+                slide:            mElement.data('slideTime') || 0,
+                slideDirection:   mElement.data('slideDirection') || 'left',
+                fadeIn:           mElement.data('fadeIn') || 0,
+                fadeOut:          mElement.data('fadeOut') || 0
+            }
         }
 
+        /*
+            Creates a configuration object. Common properties that are common to both server loaded panels
+            and locally loaded panels are configured by the getCommonConfig function.
+            
+            The properties configured here are:
+
+            heading: (data-heading)
+                Panel heading.
+            items:   (data-items)
+                Items displayed  below the heading.
+        */
+        function getLocalElementConfig(element){
+            var mElement = m(element);
+            var config = getCommonConfig(mElement);
+            config.heading = mElement.data('heading');
+            config.items   = parseLocalItems(mElement.data('items'));
+            return config;
+        }
+
+        /*
+            Build a config object that will be used to build the panel for the input element. The
+            getRemoteElementConfig function is specific to panels that are built based on server data rather
+            than local data grabbed from elemet attributes. The properties of the returned object are the
+            same as the properties on the object returned from getLocalElementConfig. 
+
+            The properties common to both locally configured panels and server loaded panels are configured
+            via the getCommonConfig function. The properties configured here are:
+
+            heading: (data-heading)
+                Panel heading.
+            items:   (data-items)
+                Items displayed  below the heading.            
+        */
         function getRemoteElementConfig(element){
             var mElement = m(element);
             var remoteKey = mElement.data('remoteKey');
             var serverResult = getServerResult(remoteKey);
-            return {
-                verticalOffset: mElement.data('verticalOffset'),
-                horizontalOffset: mElement.data('horizontalOffset'),
-                heading: serverResult['heading'],
-                items:   serverResult['items']
-            }
+            var config = getCommonConfig(mElement);
+            config.heading = serverResult['heading'];
+            config.items   = serverResult['items'];
+            return config;
         }
 
         /*
