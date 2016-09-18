@@ -12,14 +12,30 @@ var GlobalObject = (function(){
             for(var x = 0; x < _nodes.length; ++x)
                 func.apply(_nodes[x], Array.prototype.slice.call(arguments,1));
         }
+        this.first = function(){
+            return new _micro.queryObject(_nodes[0]);
+        }
         this.data = function(dataAttrName){
-            return queryObject.data.call(_nodes[0]); 
+            return _micro.queryObject.data.call(_nodes[0]); 
+        }
+        this.style = function(style, value){
+            if(value === undefined)
+                return _nodes[0].style[style];
+            for(var x = 0; x < _nodes.length; ++x)
+                _nodes[x].style[style] = value;
         }
     };
 
-    function queryObject(element){
+    _micro.queryObject = function(element){
+        this.element = element;
         this.data = function(dataAttrName){
             return element.dataset[dataAttrName];
+        }
+        this.style = function(style, value){
+            if(value === undefined)
+                return element.style[style];                
+            else
+                element.style[style] = value;
         }
     }
 
@@ -29,13 +45,18 @@ var GlobalObject = (function(){
                 document.querySelectorAll(selector)
             );
         if(typeof(selector) == 'object')
-            return new queryObject(
+            return new _micro.queryObject(
                 selector
             );
         if(selector instanceof 'NodeList')
             return new queryObjects(
                 selector
             );
-    };   
+    };
+
+    (function(){
+        if(_micro.Animate)
+            _micro.Animate.applyCreateGenericMultiAnimator(_micro.queryObject);
+    })(); 
 
 })(GlobalObject.micro = (GlobalObject.micro || {}));

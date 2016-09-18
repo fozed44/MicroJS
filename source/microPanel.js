@@ -86,27 +86,7 @@ var GlobalObject = (function(){
         var _serverConfig = {
             remoteAddress: "",
             remoteKeys: []
-        };
-
-        function opacityAnimator(animatedElement, animationTime){
-
-            var _maxOpacity = animatedElement.style.opacity,
-                _steps = Math.floor(animationTime / 30),
-                _steps = _steps > 0
-                       ? _steps
-                       : 1,
-                _step = _maxOpacity / _steps,
-                _animatedElement = animatedElement,
-                _intervalID;                    
-
-            this.start = function(){
-                _intervalID = setInterval(function(self){
-                    self._animatedElement.style.opacity += _step;
-                    if(self._animatedElement.style.opacity >= _maxOpacity)
-                        clearInterval(self._intervalID);
-                },30,this)
-            }
-        };
+        };        
 
         function throwGenericError(){
             throw 'microPanel: unknown error!';
@@ -386,6 +366,8 @@ var GlobalObject = (function(){
         function addMouseHandlers(element, panel){
             _micro.Event.addHandler(element, 'mouseover', function(){
                 element.appendChild(panel);
+                panel.style.opacity = 0;
+                _micro.Animate.createAnimator(panel, 'opacity', 1, 180, 30);
             });
             _micro.Event.addHandler(element, 'mouseleave', function(){
                element.removeChild(panel)
