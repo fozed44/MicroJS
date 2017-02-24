@@ -1,44 +1,40 @@
-var GlobalObject = (function(){
-    try { return window; }
-    catch (e) { return exports; }
-})();
+window.micro = (window.micro || {});
 
-(function(_micro){
+/*
+*/
+window.micro.History = (new function() {
 
-    _micro.History = new function() {
+    var _popStateCallbacks  = [],
+        _hasOnPopStateFired = false;
 
-        var _popStateCallbacks  = [],
-            _hasOnPopStateFired = false;
+    if(window.onpopstate
+    && typeof window.onpopstate == "function")
+        _popStateCallbacks.push(window.onpopstate);
+        
+    window.onpopstate = _popstateHandler;
 
-        if(GlobalObject.onpopstate
-        && typeof GlobalObject.onpopstate == "function")
-            _popStateCallbacks.push(GlobalObject.onpopstate);
-            
-        GlobalObject.onpopstate = _popstateHandler;
-
-        this.push = function (state, url){            
-            GlobalObject.history.pushState(
-                state, 
-                null, 
-                url || ""
-            );
-        };
-
-        this.onPopState = function(callback){
-            _popStateCallbacks.push(callback);
-        };
-
-        function _popstateHandler(event){
-            _popStateCallbacks.forEach(function(callback){
-                callback(event.state);
-            });
-        };
-
-        (function(){
-            micro.Event.addHandler(GlobalObject, 'onLoadComplete', function(){
-                if(GlobalObject.history.state && !_hasOnPopStateFired)
-                    _popstateHandler({state: history.state});
-            });
-        })();
+    this.push = function (state, url){            
+        window.history.pushState(
+            state, 
+            null, 
+            url || ""
+        );
     };
-})(GlobalObject.micro = (GlobalObject.micro || {}));
+
+    this.onPopState = function(callback){
+        _popStateCallbacks.push(callback);
+    };
+
+    function _popstateHandler(event){
+        _popStateCallbacks.forEach(function(callback){
+            callback(event.state);
+        });
+    }
+
+    (function(){
+        micro.Event.addHandler(window, 'onLoadComplete', function(){
+            if(window.history.state && !_hasOnPopStateFired)
+                _popstateHandler({state: history.state});
+        });
+    })();
+})();
